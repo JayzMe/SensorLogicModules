@@ -4,3 +4,4 @@
 *.s19
 
 __pycache__/
+results/
