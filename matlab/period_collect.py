@@ -158,12 +158,12 @@ def main():
     # Parse command line arguments
     parser = argparse.ArgumentParser(description='Practical radar test with periodic data collection')
     parser.add_argument('--port', default="/dev/ttyACM0", help='Serial port (default: /dev/ttyACM0)')
-    parser.add_argument('--collect-duration', type=float, default=2.0,
-                      help='Duration of each collection round in seconds (default: 2.0)')
-    parser.add_argument('--interval', type=float, default=10.0,
-                      help='Time between start of each collection round in seconds (default: 10.0)')
-    parser.add_argument('--total-duration', type=float, default=30.0,
-                      help='Total duration of all collection rounds in seconds (default: 30.0)')
+    parser.add_argument('--collect-duration', type=float, default=5.0,
+                      help='Duration of each collection round in seconds (default: 5.0)')
+    parser.add_argument('--interval', type=float, default=30.0,
+                      help='Time between start of each collection round in seconds (default: 30.0)')
+    parser.add_argument('--total-duration', type=float, default=600.0,
+                      help='Total duration of all collection rounds in seconds (default: 600.0)')
     args = parser.parse_args()
     
     # Create stop event for clean shutdown
