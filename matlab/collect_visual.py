@@ -214,7 +214,7 @@ def main():
     parser = argparse.ArgumentParser(description='Radar data collection and visualization tool')
     parser.add_argument('--port', type=str, default="/dev/ttyACM0",
                         help='Serial port for radar connection (default: /dev/ttyACM0)')
-    parser.add_argument('--no-plot', action='store_true',
+    parser.add_argument('--no-visual', action='store_true',
                         help='Disable visualization and only collect data')
     parser.add_argument('--duration', type=int, default=None,
                         help='Duration in seconds to collect data (default: run until interrupted)')
