@@ -7,6 +7,8 @@ from xep_radar_connector import XEPRadarConnector, RadarConfig
 from datetime import datetime
 import os
 import platform
+import argparse
+import time
 
 class RadarVisualizer:
     def __init__(self, port: str):
@@ -141,6 +143,56 @@ class RadarVisualizer:
         )
         
         plt.show()
+        
+    def collect_data_only(self, duration=None):
+        """Collect data without visualization
+        
+        Args:
+            duration: Optional duration in seconds to collect data. If None, runs until interrupted.
+        """
+        print(f"Starting data collection without visualization...")
+        print(f"Saving data to: {self.get_log_filename()}")
+        
+        start_time = time.time()
+        try:
+            while True:
+                # Get frame data and process
+                frame_data = np.abs(self.radar.get_frame_normalized())
+                frame_data = frame_data - 255  # Match MATLAB processing
+                
+                # Calculate FFT (for logging purposes)
+                Y = np.fft.fft(frame_data)
+                f = self.calculate_frequency_axis(len(frame_data))
+                
+                # Find max frequency
+                fft_mag = np.abs(Y)
+                half = len(f) // 2
+                max_idx = np.argmax(fft_mag[half:]) + half
+                max_freq = abs(f[max_idx])
+                
+                # Log data
+                timestamp = datetime.now().strftime('%H:%M:%S.%f')
+                frame_str = ' '.join(map(str, frame_data))
+                with open(self.get_log_filename(), 'a') as f:
+                    f.write(f"{timestamp} {frame_str}\n")
+                
+                # Print status every second
+                if int(time.time()) > int(start_time) and int(time.time()) % 5 == 0:
+                    print(f"Collecting data... Max frequency: {max_freq:.1f} GHz, max magnitude: {fft_mag[max_idx]:.1f}")
+                    start_time = time.time()
+                
+                # Check if duration is specified and elapsed
+                if duration and (time.time() - start_time) > duration:
+                    print(f"Collection completed after {duration} seconds")
+                    break
+                    
+                # Small delay to prevent CPU overload
+                time.sleep(0.05)
+                
+        except KeyboardInterrupt:
+            print("Data collection stopped by user")
+        except Exception as e:
+            print(f"Error during data collection: {e}")
 
 def normalize_port(port: str) -> str:
     """Normalize port name based on platform"""
@@ -158,9 +210,18 @@ def normalize_port(port: str) -> str:
         return port
 
 def main():
-    # Use default port
-    port = "/dev/ttyACM0"
-    normalized_port = normalize_port(port)
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(description='Radar data collection and visualization tool')
+    parser.add_argument('--port', type=str, default="/dev/ttyACM0",
+                        help='Serial port for radar connection (default: /dev/ttyACM0)')
+    parser.add_argument('--no-plot', action='store_true',
+                        help='Disable visualization and only collect data')
+    parser.add_argument('--duration', type=int, default=None,
+                        help='Duration in seconds to collect data (default: run until interrupted)')
+    args = parser.parse_args()
+    
+    # Use provided port
+    normalized_port = normalize_port(args.port)
     visualizer = RadarVisualizer(normalized_port)
     
     with XEPRadarConnector(visualizer.config).connection('X4') as radar:
@@ -169,11 +230,17 @@ def main():
             print(f"Connected to radar on {normalized_port}")
             visualizer.configure_radar()
             print(f"Samplers per frame: {radar.samplers_per_frame}")
-            print("Starting continuous visualization...")
-            visualizer.start_visualization()
+            
+            if args.no_visual:
+                # Run without visualization
+                visualizer.collect_data_only(duration=args.duration)
+            else:
+                # Run with visualization
+                print("Starting continuous visualization...")
+                visualizer.start_visualization()
             
         except Exception as e:
-            print(f"Error during visualization: {e}")
+            print(f"Error during operation: {e}")
             
 if __name__ == "__main__":
     main()
