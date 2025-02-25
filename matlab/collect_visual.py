@@ -49,7 +49,7 @@ class RadarVisualizer:
         ax2.set_xlabel('Frequency (GHz)')
         ax2.set_ylabel('Magnitude')
         ax2.set_xlim([0, 12])
-        ax2.set_ylim([0, 55])
+        ax2.set_ylim([0, 550])
         ax2.grid(True)
         self.lines.append(h2)
         
@@ -114,8 +114,8 @@ class RadarVisualizer:
     def configure_radar(self):
         """Configure radar parameters to match MATLAB settings"""
         self.radar.update_chip("rx_wait", 0)
-        self.radar.update_chip("frame_start", 2)
-        self.radar.update_chip("frame_end", 4)
+        self.radar.update_chip("frame_start", 0)
+        self.radar.update_chip("frame_end", 2)
         self.radar.update_chip("ddc_en", 0)
         self.radar.update_chip("tx_region", 3)
         self.radar.update_chip("tx_power", 3)
